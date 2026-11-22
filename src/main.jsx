@@ -11,10 +11,13 @@ import {
 import '@fontsource-variable/inter';
 import { banks, postTransfer, readLedger, resetLedger, storageKey, toPaise } from './ledger';
 import bankChoice from './bank-config';
+import LiveBank from './LiveBank';
+import { configuredEndpoint, readStorage, saveStorage } from './live-api';
 import './style.css';
 
-const bank = banks[bankChoice];
-const peer = banks[bank.peer];
+const supportsDemo = typeof bankChoice === 'string';
+const bank = supportsDemo ? banks[bankChoice] : bankChoice;
+const peer = supportsDemo ? banks[bank.peer] : undefined;
 const switchUrl = 'https://sriramtpsiog.github.io/SharedDB/';
 const theme = createTheme({
   palette: { primary: { main: bank.color } },
@@ -134,7 +137,7 @@ function TransferForm({ ledger, onSubmit }) {
   </div>;
 }
 
-function App() {
+function App({ openLive }) {
   const [ledger, setLedger] = useState(readLedger);
   const [page, setPage] = useState(currentPage);
   const [hidden, setHidden] = useState(false);
@@ -175,7 +178,8 @@ function App() {
       <a className="switch-link" href={switchUrl}><Globe2 size={17} /> SharedBank switch</a>
     </aside>
     <div className="main">
-      <header className="topbar"><strong>{bank.name}</strong><Chip label="Demo accounts" size="small" className="demo" /></header>
+      <header className="topbar"><strong>{bank.name}</strong><div className="live-mode-actions"><Chip label="Demo accounts" size="small" className="demo" />
+        <Button size="small" variant="outlined" onClick={openLive}>Firestore mode</Button></div></header>
       <main className="content">
         <header className="page-head"><div><h1>{navigation.find(item => item.id === page).name}</h1>
           <p>{page === 'overview' ? 'Manage your savings and transfers.' : page === 'accounts' ? 'View your account balances and routing details.' :
@@ -216,4 +220,17 @@ function App() {
   </div>;
 }
 
-createRoot(document.getElementById('root')).render(<ThemeProvider theme={theme}><CssBaseline /><App /></ThemeProvider>);
+function Portal() {
+  const key = 'x42-mode-' + bank.id;
+  const [mode, setMode] = useState(() => supportsDemo
+    ? readStorage(localStorage, key, configuredEndpoint ? 'live' : 'demo') : 'live');
+  function select(next) {
+    setMode(next);
+    saveStorage(localStorage, key, next);
+  }
+  return mode === 'live'
+    ? <LiveBank bank={bank} switchUrl={switchUrl} openDemo={supportsDemo ? () => select('demo') : undefined} />
+    : <App openLive={() => select('live')} />;
+}
+
+createRoot(document.getElementById('root')).render(<ThemeProvider theme={theme}><CssBaseline /><Portal /></ThemeProvider>);
