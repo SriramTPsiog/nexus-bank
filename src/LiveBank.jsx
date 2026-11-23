@@ -1,254 +1,142 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Button, Chip, MenuItem, TextField } from '@mui/material';
-import { ArrowLeftRight, Globe2, Landmark, List, LogOut, RefreshCw, Send } from 'lucide-react';
-import { toPaise } from './ledger';
+import { Alert, Button, IconButton, TextField } from '@mui/material';
+import { Eye, EyeOff, Globe2, KeyRound, Layers3 } from 'lucide-react';
+import Workspace, { Brand, switchUrl } from './Workspace';
 import { configuredEndpoint, liveApi, parseEndpoint, readStorage, saveStorage } from './live-api';
-import './live.css';
 
-const money = minor => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(minor / 100);
-const time = value => value ? new Intl.DateTimeFormat('en-IN', {
-  dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata',
-}).format(new Date(value)) : '—';
-
-const statusNames = {
-  PENDING: 'Pending', PROCESSING: 'Processing', COMPLETED: 'Completed', REJECTED: 'Rejected', MANUAL_REVIEW: 'Manual review',
-};
-const rejectionNames = {
-  INSUFFICIENT_FUNDS: 'Insufficient available balance',
-  LIMIT_EXCEEDED: 'Transfer limit exceeded',
-  DESTINATION_ACCOUNT_UNAVAILABLE: 'The destination is unavailable',
-};
-const byId = (directory, id) => directory.find(bank => bank.bankId === id)?.bankName || id;
-
-function TransferForm({ bank, accounts, directory, send }) {
-  const [type, setType] = useState('interbank');
-  const [from, setFrom] = useState('');
-  const [destination, setDestination] = useState('');
-  const [number, setNumber] = useState('');
-  const [amount, setAmount] = useState('200');
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-  const sources = accounts.filter(account => account.status === 'ACTIVE');
-  const fromId = sources.some(item => item.accountId === from) ? from : (sources[0]?.accountId || '');
-  const routes = directory.filter(item => item.bankId !== bank.id && item.status === 'ACTIVE');
-  const route = destination ? (routes.find(item => item.ifsc === destination)?.ifsc || '') : (routes[0]?.ifsc || '');
-  const target = type === 'internal' ? bank.ifsc : route;
-
-  async function submit(event) {
-    event.preventDefault();
-    setError('');
-    const amountMinor = toPaise(amount);
-    if (!fromId || !target || !number.trim() || amountMinor === null) {
-      setError('Choose a source, destination and positive amount with at most two decimal places.');
-      return;
-    }
-    setBusy(true);
-    try {
-      await send({ fromAccountId: fromId, destinationIfsc: target,
-        destinationAccountNumber: number.trim(), amountMinor, currency: 'INR' });
-      setNumber('');
-    } catch (failure) { setError(failure.message); }
-    finally { setBusy(false); }
-  }
-
-  return <section className="panel live-transfer"><header className="panel-head"><div>
-    <h2>Send a test transfer</h2><p>Transfers use synthetic balances stored in Firestore.</p>
-  </div><Send size={19} /></header>
-    <form className="transfer-form" onSubmit={submit}>
-      <div className="type-switch">
-        {[['interbank', 'Interbank'], ['internal', 'Same bank']].map(([value, label]) => <Button key={value}
-          type="button" aria-pressed={type === value} variant={type === value ? 'contained' : 'outlined'}
-          disabled={busy} onClick={() => setType(value)}>{label}</Button>)}
-      </div>
-      <TextField select label="From account" required value={fromId} onChange={e => setFrom(e.target.value)} disabled={busy || !sources.length}>
-        {sources.map(account => <MenuItem key={account.accountId} value={account.accountId}>
-          {account.accountNumber} · {money(account.availableMinor)} available
-        </MenuItem>)}
-      </TextField>
-      {type === 'interbank' && <TextField select label="Destination bank" required value={route}
-        onChange={e => setDestination(e.target.value)} disabled={busy || !routes.length}>
-        {routes.map(item => <MenuItem key={item.ifsc} value={item.ifsc}>{item.bankName} · {item.ifsc}</MenuItem>)}
-      </TextField>}
-      <TextField label="Destination account number" required value={number} onChange={e => setNumber(e.target.value)} disabled={busy} />
-      <TextField label="Amount in INR" required value={amount} onChange={e => setAmount(e.target.value)} disabled={busy}
-        slotProps={{ htmlInput: { inputMode: 'decimal' } }} />
-      {error && <Alert severity="error">{error}</Alert>}
-      <div><Button type="submit" variant="contained" disabled={busy || !fromId || !target} startIcon={<Send size={16} />}>
-        {busy ? 'Submitting…' : 'Submit transfer'}
-      </Button></div>
-    </form>
-  </section>;
-}
-
-function Activity({ rows, directory }) {
-  return <section className="panel"><header className="panel-head"><div><h2>Transfer activity</h2><p>Latest 50 transfers for this user</p></div><List size={19} /></header>
-    {rows.length ? <div className="table-scroll"><table>
-      <thead><tr><th>Transfer</th><th>Route</th><th>Amount</th><th>Status</th></tr></thead>
-      <tbody>{rows.map(row => <tr key={row.transferId}>
-        <td><strong>{row.transferId}</strong><small>{time(row.createdAt)}</small></td>
-        <td><strong>{byId(directory, row.sourceBankId)} → {byId(directory, row.destinationBankId)}</strong><small>
-          {row.type === 'INTERNAL' ? 'Same bank' : row.direction === 'CREDIT' ? 'Incoming' : 'Outgoing'}
-        </small></td>
-        <td className={row.direction === 'CREDIT' ? 'incoming amount' : 'amount'}>{money(row.amountMinor)}</td>
-        <td><Chip size="small" label={statusNames[row.status] || row.status}
-          className={row.status === 'COMPLETED' ? 'completed' : 'live-' + row.status?.toLowerCase()} />
-          {row.code && <small>{rejectionNames[row.code] || row.code.toLowerCase().replaceAll('_', ' ')}</small>}</td>
-      </tr>)}</tbody>
-    </table></div> : <div className="empty"><ArrowLeftRight size={23} /><strong>No transfers yet</strong><p>Your transfers appear here when the Worker accepts them.</p></div>}
-  </section>;
-}
-
-export default function LiveBank({ bank, switchUrl, openDemo }) {
-  const urlKey = 'x42-cloudflare-worker-url';
-  const [base, setBase] = useState(() => configuredEndpoint || readStorage(localStorage, urlKey, ''));
-  const [session, setSession] = useState(null);
+function SignedIn({ bank, base, session, logout, connection }) {
   const prefix = '/banks/' + bank.id;
-  const [url, setUrl] = useState(base);
-  const [editUrl, setEditUrl] = useState(!base);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [data, setData] = useState(null);
+  const [updated, setUpdated] = useState(null);
   const [error, setError] = useState('');
-  const [note, setNote] = useState('');
-  const [data, setData] = useState({ accounts: [], transfers: [] });
+  const [refreshing, setRefreshing] = useState(false);
   const [directory, setDirectory] = useState([]);
-  const [loaded, setLoaded] = useState(false);
-  const activeToken = useRef(null);
-  activeToken.current = session?.token;
+  const [directoryError, setDirectoryError] = useState('');
+  const [loadingDirectory, setLoadingDirectory] = useState(true);
+  const [directoryAttempt, setDirectoryAttempt] = useState(0);
+  const request = useRef(null);
+  const lifetime = useRef(null);
   const pending = useRef(new Map());
-  const refresh = useCallback(async signal => {
-    if (!session) return;
-    try {
-      const value = await liveApi(base, prefix + '/dashboard', { token: session.token, signal });
-      if (signal?.aborted || activeToken.current !== session.token) return;
-      setData(value);
-      setLoaded(true);
-      setError('');
-    } catch (failure) {
-      if (signal?.aborted || activeToken.current !== session.token) return;
-      if (failure.status === 401) {
-        setSession(null);
-        setData({ accounts: [], transfers: [] });
-        setLoaded(false);
-      }
-      setError(failure.message);
-    }
-  }, [base, prefix, session]);
-
+  const refresh = useCallback(() => {
+    const signal = lifetime.current?.signal;
+    if (!signal || signal.aborted) return;
+    if (request.current) return request.current;
+    setRefreshing(true);
+    request.current = liveApi(base, prefix + '/dashboard', { token: session.token, signal })
+      .then(value => {
+        if (signal.aborted) return;
+        if (!Array.isArray(value.accounts) || !Array.isArray(value.transfers)) throw new Error('Could not read the account dashboard.');
+        setData(value); setUpdated(new Date().toISOString()); setError('');
+      }).catch(failure => {
+        if (signal.aborted) return;
+        if (failure.status === 401) logout(failure.message);
+        else setError(failure.message);
+      }).finally(() => { if (!signal.aborted) { setRefreshing(false); request.current = null; } });
+    return request.current;
+  }, [base, prefix, session.token, logout]);
   useEffect(() => {
-    if (!session) return undefined;
     const controller = new AbortController();
-    const update = () => { if (document.visibilityState === 'visible') refresh(controller.signal); };
-    refresh(controller.signal);
-    const timer = setInterval(update, 12_000);
-    document.addEventListener('visibilitychange', update);
-    return () => {
-      clearInterval(timer);
-      controller.abort();
-      document.removeEventListener('visibilitychange', update);
-    };
-  }, [session, refresh]);
-
+    lifetime.current = controller;
+    refresh();
+    const timer = setInterval(() => { if (!document.hidden) refresh(); }, 60_000);
+    return () => { controller.abort(); clearInterval(timer); request.current = null; };
+  }, [refresh]);
   useEffect(() => {
-    if (!session) return undefined;
     const controller = new AbortController();
+    setLoadingDirectory(true); setDirectoryError('');
     liveApi(base, '/directory/banks', { signal: controller.signal })
-      .then(value => setDirectory(value.banks || []))
-      .catch(failure => { if (!controller.signal.aborted) setError(failure.message); });
+      .then(value => { if (!Array.isArray(value.banks)) throw new Error('Could not read the bank directory.');
+        if (!controller.signal.aborted) setDirectory(value.banks); })
+      .catch(failure => { if (!controller.signal.aborted) setDirectoryError(failure.message); })
+      .finally(() => { if (!controller.signal.aborted) setLoadingDirectory(false); });
     return () => controller.abort();
-  }, [base, session]);
-
-  function logout() {
-    setSession(null);
-    setLoaded(false);
-    setData({ accounts: [], transfers: [] });
-    setNote('');
-  }
-
-  async function signIn(event) {
-    event.preventDefault();
-    setBusy(true);
-    setError('');
-    try {
-      const value = await liveApi(base, prefix + '/sign-in', { data: { email: email.trim(), password } });
-      setSession(value);
-    } catch (failure) { setError(failure.message); }
-    finally { setPassword(''); setBusy(false); }
-  }
-
-  function connect(event) {
-    event.preventDefault();
-    setError('');
-    try {
-      const endpoint = parseEndpoint(url);
-      if (endpoint !== base) { logout(); setDirectory([]); }
-      saveStorage(localStorage, urlKey, endpoint);
-      setBase(endpoint);
-      setEditUrl(false);
-    } catch (failure) { setError(failure.message); }
-  }
+  }, [base, directoryAttempt]);
 
   async function send(transfer) {
+    const signal = lifetime.current.signal;
     const raw = JSON.stringify([bank.id, base, session.uid, transfer]);
-    const bytes = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw)));
-    const hash = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
-    const keyName = 'x42-pending-' + hash;
+    const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw)));
+    const keyName = 'x42-pending-' + Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('');
     const key = pending.current.get(keyName) || readStorage(sessionStorage, keyName, null) || crypto.randomUUID();
-    pending.current.set(keyName, key);
-    saveStorage(sessionStorage, keyName, key);
-    const row = await liveApi(base, prefix + '/transfers', { token: session.token, data: transfer, key });
-    pending.current.delete(keyName);
-    saveStorage(sessionStorage, keyName, null);
-    const verb = row.status === 'COMPLETED' ? 'Completed' : row.status === 'REJECTED' ? 'Rejected' :
-      row.status === 'MANUAL_REVIEW' ? 'Manual review' : 'Accepted';
-    setNote(verb + ' · ' + row.transferId);
-    await refresh();
+    pending.current.set(keyName, key); saveStorage(sessionStorage, keyName, key);
+    let row;
+    try { row = await liveApi(base, prefix + '/transfers', { token: session.token, data: transfer, key, signal }); }
+    catch (failure) {
+      if (failure.status === 401 && !signal.aborted) logout(failure.message);
+      throw failure;
+    }
+    if (!row.transferId || !row.status) throw new Error('The service returned an incomplete response. Check activity before retrying with the same details.');
+    pending.current.delete(keyName); saveStorage(sessionStorage, keyName, null);
+    if (!signal.aborted) {
+      if (request.current) await request.current;
+      refresh();
+    }
+    if (signal.aborted) throw new Error('Your session has ended.');
+    return { ...row, direction: 'DEBIT' };
   }
+  const routeBank = { ...bank, ifsc: data?.bank?.ifsc || bank.ifsc };
+  const known = directory.length ? directory : [{ bankId: bank.id, bankName: bank.name }];
+  return <Workspace bank={routeBank} accounts={data?.accounts || []} transfers={data?.transfers || []} email={session.email}
+    directory={known} directoryError={directoryError} loadingDirectory={loadingDirectory} retryDirectory={() => setDirectoryAttempt(n => n + 1)}
+    ready={Boolean(data)} refresh={refresh} refreshing={refreshing} updated={updated} error={error} send={send} leave={() => logout('')} connection={connection}/>;
+}
 
-  return <div className="layout live-bank-layout">
-    <aside className="sidebar"><div className="brand"><span className="brand-icon"><Landmark size={23} /></span>
-      <span><strong>{bank.wordmark}</strong><small>BANKING PORTAL</small></span></div>
-      <nav aria-label="Bank actions">
-        {session && <button onClick={() => refresh()}><RefreshCw size={18} /> Refresh balances</button>}
-        {!configuredEndpoint && <button onClick={() => { setUrl(base); setEditUrl(!editUrl); }}><Globe2 size={18} /> Worker connection</button>}
-        {openDemo && <button onClick={openDemo}><ArrowLeftRight size={18} /> Browser demo</button>}
-        {session && <button onClick={logout}><LogOut size={18} /> Sign out</button>}
-      </nav>
-      <a className="switch-link" href={switchUrl}><Globe2 size={17} /> SharedBank switch</a>
-    </aside>
-    <div className="main">
-      <header className="topbar"><strong>{bank.name} · {bank.id}</strong><Chip label="Firestore test network" size="small" className="demo" /></header>
-      <main className="content live-bank-content">
-        <div className="page-head"><div><h1>{session ? 'Accounts and transfers' : 'Access your bank'}</h1>
-          <p>{session ? 'Signed in as ' + session.email : 'Connect to the Worker and use your bank’s Firebase test login.'}</p>
+export default function LiveBank({ bank, openDemo }) {
+  const urlKey = 'x42-cloudflare-worker-url';
+  const [base, setBase] = useState(() => configuredEndpoint || readStorage(localStorage, urlKey, ''));
+  const [url, setUrl] = useState(base);
+  const [editing, setEditing] = useState(!base);
+  const [session, setSession] = useState(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [show, setShow] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const logout = useCallback(message => { setSession(null); setShow(false); setPassword(''); setError(message); }, []);
+  async function signIn(event) {
+    event.preventDefault(); if (busy) return;
+    setBusy(true); setError('');
+    try {
+      const value = await liveApi(base, '/banks/' + bank.id + '/sign-in', { data: { email: email.trim(), password } });
+      if (!value.token || !value.uid) throw new Error('The service returned an incomplete sign-in response.');
+      setSession(value);
+    }
+    catch (failure) { setError(failure.message); }
+    finally { setBusy(false); setPassword(''); }
+  }
+  function connect(event) {
+    event.preventDefault();
+    try {
+      const endpoint = parseEndpoint(url); saveStorage(localStorage, urlKey, endpoint); setBase(endpoint); setError(''); setEditing(false);
+    } catch (failure) { setError(failure.message); }
+  }
+  const connection = !configuredEndpoint && <Button onClick={() => { logout(''); setUrl(base); setEditing(true); }}>Worker connection</Button>;
+  if (session) return <SignedIn bank={bank} session={session} base={base} logout={logout} connection={connection}/>;
+  return <div className="entry"><header className="masthead"><div className="mast-inner"><Brand bank={bank}/>
+    <a className="switch-anchor" href={switchUrl}><Globe2 size={17}/>SharedBank switch</a></div></header>
+    <main className="entry-main"><div className="entry-grid">
+      <section className="art-panel" aria-label={bank.name + ' routing details'}>
+        <div className="art-lines" aria-hidden="true"/><div className="art-label"><span className="network-glyph" aria-hidden="true"/>SharedBank network</div>
+        <div className="book-stack"><div className="book-under" aria-hidden="true"/><div className="passbook">
+          <div className="passbook-lines" aria-hidden="true"/><div className="book-head"><span className="book-mark" aria-hidden="true">N</span><span>Account services</span></div>
+          <div className="book-title">{bank.short}<br/>Bank<span>.</span></div><div className="book-bottom"><span>PERSONAL BANKING</span><span>{bank.id}</span></div>
         </div></div>
+        <div className="art-foot"><div><span>Bank identifier</span><strong>{bank.id}</strong></div><div><span>IFSC</span><strong>{bank.ifsc}</strong></div></div>
+      </section>
+      <section className="entry-form"><div className="form-symbol"><KeyRound size={24}/></div>
+        <h1>{editing ? 'Connect your Worker' : 'Welcome back.'}</h1>
+        <p>{editing ? 'Enter the Cloudflare Worker URL for this bank.' : 'Sign in to your ' + bank.name + ' account.'}</p>
         {error && <Alert severity="error">{error}</Alert>}
-        {note && <Alert severity="info" onClose={() => setNote('')}>{note}</Alert>}
-        {editUrl && <section className="panel"><header className="panel-head"><div><h2>Worker connection</h2>
-          <p>Use the same Cloudflare Worker URL across the bank pages.</p></div></header>
-          <form className="transfer-form" onSubmit={connect}><TextField label="Cloudflare Worker URL" fullWidth required value={url} onChange={e => setUrl(e.target.value)} />
-            <div><Button type="submit" variant="contained">Save connection</Button></div></form>
-        </section>}
-        {!session && base && !editUrl && <section className="panel live-sign-in"><header className="panel-head"><div><h2>Sign in to {bank.name}</h2>
-          <p>Use a customer enabled in this bank’s Firebase project.</p></div></header>
-          <form className="transfer-form" onSubmit={signIn}>
-            <TextField label="Email" type="email" autoComplete="username" required value={email} onChange={event => setEmail(event.target.value)} />
-            <TextField label="Password" type="password" autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)} />
-            <div><Button type="submit" variant="contained" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</Button></div>
-          </form></section>}
-        {session && <>
-          {loaded && !data.accounts.length && <Alert severity="info">This Firebase user has no synthetic account in this bank. Attach an account to this Firebase UID.</Alert>}
-          {!loaded && <Alert severity="info">Loading your accounts and activity…</Alert>}
-          <div className="accounts">{data.accounts.map((account, i) =>
-            <section key={account.accountId} className={'account-card ' + (i === 0 ? 'primary-account' : 'light-account')}>
-              <div className="account-head"><span>{account.accountNumber}</span><Landmark size={19} /></div>
-              <div className="account-value">{money(account.availableMinor)}</div>
-              <div className="account-foot"><span>Available · Held {money(account.heldMinor)}</span><span>{account.accountId}</span></div>
-            </section>)}</div>
-          {data.accounts.length > 0 && <TransferForm bank={bank} accounts={data.accounts} directory={directory} send={send} />}
-          <Activity rows={data.transfers} directory={directory} />
-        </>}
-      </main>
-    </div>
-  </div>;
+        {editing ? <form className="fields" onSubmit={connect}><TextField label="Cloudflare Worker URL" required value={url} onChange={e => setUrl(e.target.value)}/>
+          <Button type="submit" variant="contained">Save connection</Button></form>
+          : <form className="fields" onSubmit={signIn}><TextField label="Email address" type="email" autoComplete="username" required value={email} onChange={e => setEmail(e.target.value)}/>
+            <TextField label="Password" type={show ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)}
+              slotProps={{ input: { endAdornment: <IconButton aria-label={show ? 'Hide password' : 'Show password'} onClick={() => setShow(v => !v)}>{show ? <EyeOff size={18}/> : <Eye size={18}/>}</IconButton> } }}/>
+            <Button type="submit" variant="contained" size="large" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</Button>
+          </form>}
+        {openDemo && <div className="demo-choice"><Button startIcon={<Layers3 size={17}/>} color="inherit" onClick={openDemo} disabled={busy}>Explore browser demo</Button>
+          <small>Try transfers with local sample accounts.</small></div>}{!editing && connection}
+      </section></div>
+      <div className="entry-foot"><span>{bank.name} · Personal banking</span><span>SharedBank test network</span></div>
+    </main></div>;
 }
