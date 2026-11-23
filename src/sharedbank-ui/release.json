@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "bankId": "P629",
+  "files": {
+    "Activity.jsx": "3f506973582633e726080bdf52c9ce6eb471fef9d28bd43f6cbe0062cb0199c5",
+    "LiveBank.jsx": "f37f0480086e5551c9224a7f1356ef81d8503a704ebc75e44eecb630ba0400cd",
+    "TransferForm.jsx": "f2c3d52b34ab51b3cd792c693d6e553beb939c2587f1013f894ae812cfab0187",
+    "Workspace.jsx": "dabe81d7eebffecd5e24400116e63837cc5b4bebd11bd391cc2aa90d0ff22469",
+    "banking.js": "d9d33c0822812112f1162d139ae419c17d0fdcc9a044c0350f30575dff7f86bb",
+    "ledger.js": "10ff14e2ee2bb861b56f122fea8e2f76736ea93dddda154260aa038be708abae",
+    "live-api.js": "5721752516a76398520c3e376f490007a260ed1fe0013f6eac34150a0f754c29",
+    "main.jsx": "a505994f410b328cfcb21bbca53d3dc8f203aa6dcaaa4d4e27533c9f98535066",
+    "style.css": "932a79cd1a4a384befe198630a0e86a855370db68726ddb8db3edbfd258fee8d"
+  }
+}
