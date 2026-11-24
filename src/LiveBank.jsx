@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Button, IconButton, TextField } from '@mui/material';
 import { Eye, EyeOff, Globe2, KeyRound, Layers3 } from 'lucide-react';
+import NexusServices from './NexusServices';
 import Workspace, { Brand, switchUrl } from './Workspace';
 import { configuredEndpoint, liveApi, parseEndpoint, readStorage, saveStorage } from './live-api';
 
@@ -82,6 +83,7 @@ function SignedIn({ bank, base, session, logout, connection }) {
 }
 
 export default function LiveBank({ bank, openDemo }) {
+  const [services, setServices] = useState(false);
   const urlKey = 'x42-cloudflare-worker-url';
   const [base, setBase] = useState(() => configuredEndpoint || readStorage(localStorage, urlKey, ''));
   const [url, setUrl] = useState(base);
@@ -111,7 +113,8 @@ export default function LiveBank({ bank, openDemo }) {
     } catch (failure) { setError(failure.message); }
   }
   const connection = !configuredEndpoint && <Button onClick={() => { logout(''); setUrl(base); setEditing(true); }}>Worker connection</Button>;
-  if (session) return <SignedIn bank={bank} session={session} base={base} logout={logout} connection={connection}/>;
+  if (services) return <NexusServices session={session} close={() => setServices(false)}/>;
+  if (session) return <SignedIn bank={bank} session={session} base={base} logout={logout} connection={<><Button onClick={() => setServices(true)}>Nexus services</Button>{connection}</>}/>;
   return <div className="entry"><header className="masthead"><div className="mast-inner"><Brand bank={bank}/>
     <a className="switch-anchor" href={switchUrl}><Globe2 size={17}/>SharedBank switch</a></div></header>
     <main className="entry-main"><div className="entry-grid">
@@ -131,6 +134,7 @@ export default function LiveBank({ bank, openDemo }) {
               slotProps={{ input: { endAdornment: <IconButton aria-label={show ? 'Hide password' : 'Show password'} onClick={() => setShow(v => !v)}>{show ? <EyeOff size={18}/> : <Eye size={18}/>}</IconButton> } }}/>
             <Button type="submit" variant="contained" size="large" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</Button>
           </form>}
+        <Button onClick={() => setServices(true)}>Account applications, loans and portfolio</Button>
         {openDemo && <div className="demo-choice"><Button startIcon={<Layers3 size={17}/>} color="inherit" onClick={openDemo} disabled={busy}>Explore browser demo</Button>
           <small>Try transfers with local sample accounts.</small></div>}{!editing && connection}
       </section></div>

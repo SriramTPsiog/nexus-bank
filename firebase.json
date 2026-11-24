@@ -1,0 +1,3 @@
+{
+  "functions": [{ "source": "functions", "codebase": "nexus-services", "runtime": "nodejs22" }]
+}
