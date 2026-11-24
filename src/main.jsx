@@ -2,17 +2,19 @@ import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import '@fontsource-variable/inter';
+import '@fontsource-variable/bricolage-grotesque';
 import { banks, postTransfer, readLedger, resetLedger, storageKey } from './ledger';
 import bankChoice from './bank-config';
 import LiveBank from './LiveBank';
 import Workspace from './Workspace';
 import { configuredEndpoint, readStorage, saveStorage } from './live-api';
 import './style.css';
+import './waterfront.css';
 
 const supportsDemo = typeof bankChoice === 'string';
 const bank = supportsDemo ? banks[bankChoice] : bankChoice;
 const theme = createTheme({
-  palette: { primary: { main: '#234cca' }, text: { primary: '#19263e', secondary: '#53627b' } },
+  palette: { primary: { main: '#22398d' }, text: { primary: '#19263e', secondary: '#53627b' } },
   shape: { borderRadius: 10 },
   typography: { fontFamily: '"Inter Variable", Inter, sans-serif', button: { textTransform: 'none', fontWeight: 650 } },
   components: { MuiButton: { defaultProps: { disableElevation: true } } },

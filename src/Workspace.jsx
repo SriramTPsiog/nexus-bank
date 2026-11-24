@@ -20,12 +20,12 @@ function currentPage() {
 function Balance({ bank, accounts, hidden, toggle }) {
   const total = accounts.reduce((sum, a) => sum + a.availableMinor, 0);
   const held = accounts.reduce((sum, a) => sum + a.heldMinor, 0);
-  return <section className="balance"><div className="intaglio" aria-hidden="true"/><div className="balance-content">
+  return <section className="balance"><div className="waterfront" aria-hidden="true"><i className="ferry"/></div><div className="balance-content">
     <div className="balance-top"><span>Total available balance</span><IconButton size="small" aria-label={hidden ? 'Show balances' : 'Hide balances'} onClick={toggle}>
       {hidden ? <Eye size={18}/> : <EyeOff size={18}/>}</IconButton></div>
     <strong className="balance-number">{hidden ? '₹ ••••••' : money(total)}</strong>
     <div className="balance-foot"><span>{accounts.length} linked {accounts.length === 1 ? 'account' : 'accounts'}</span><span>On hold &nbsp; {hidden ? '••••' : money(held)}</span></div>
-  </div><span className="balance-bank">{bank.wordmark}</span></section>;
+  </div><span className="routing-stamp">{bank.id} · {bank.ifsc}</span></section>;
 }
 function Accounts({ accounts, hidden, bank }) {
   const [copyState, setCopyState] = useState('');
@@ -75,10 +75,10 @@ export default function Workspace({ bank, email, demo, accounts, transfers, dire
           {!accounts.length && <Alert severity="info">No synthetic accounts are linked to this login. Ask the Nexus Bank owner to attach your Firebase UID to a bank account.</Alert>}
           {(page === 'overview' || page === 'accounts') && <>
             <div className="overview-grid"><Balance bank={bank} accounts={accounts} hidden={hidden} toggle={toggle}/>
-              <section className="box quick"><h2>Quick actions</h2>
-                <button onClick={() => navigate('transfers')}><span className="shortcut-icon"><Send size={18}/></span> Send money</button>
+              <section className="box quick" aria-label="Quick actions">
+                <button onClick={() => navigate('transfers')}><span className="shortcut-icon"><Send size={18}/></span> Send money<small>Same bank or interbank</small></button>
                 <button onClick={() => navigate(page === 'accounts' ? 'activity' : 'accounts')}><span className="shortcut-icon">
-                  {page === 'accounts' ? <History size={18}/> : <Wallet size={18}/>}</span>{page === 'accounts' ? 'View activity' : 'Account details'}</button>
+                  {page === 'accounts' ? <History size={18}/> : <Wallet size={18}/>}</span>{page === 'accounts' ? 'View activity' : 'Account details'}<small>{page === 'accounts' ? 'Transfers and receipts' : 'Balances and routing'}</small></button>
               </section></div>
             {page === 'accounts' && <Accounts accounts={accounts} bank={bank} hidden={hidden}/>}
           </>}

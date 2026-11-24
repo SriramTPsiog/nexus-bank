@@ -1,0 +1,67 @@
+:root { --paper:#faf5e9; --ink:#20274a; --blue:#23388b; --muted:#595d6c; --line:#d9d3c5; --wash:#f4efe3; --display:"Bricolage Grotesque Variable","Inter Variable",sans-serif }
+.entry,.shell { background:var(--paper); background-image:radial-gradient(#9c805b20 .8px,transparent .8px); background-size:5px 5px }
+.masthead { background:#222c58; color:#fff6e2; border-bottom:4px solid #fd936b }
+.mast-inner { max-width:1290px; min-height:67px }
+.brand strong { font:760 1.7rem/1 var(--display); letter-spacing:-.075em }
+.mark { background:#ffad87; border-radius:50%; transform:rotate(-7deg) }
+.mark i { background:#253052 }.mark i:nth-child(2){background:#253052}
+.switch-anchor,.header-actions,.switch-anchor:hover { color:#fff4dd }
+.network-label { color:#ffd5ae; background:transparent; border-color:#7b7792; font-family:ui-monospace,monospace }
+.app-layout { display:block; max-width:1290px; padding-inline:clamp(16px,5vw,80px) }
+.sidebar { background:none; border:0; border-bottom:1px solid var(--line); padding:10px 0; flex-direction:row; justify-content:space-between; gap:8px }
+.sidebar nav { display:flex; gap:2px }
+.sidebar nav a { border-radius:6px; padding:8px 14px; font-size:.9rem }
+.sidebar nav a[aria-current="page"] { color:var(--paper); background:var(--ink) }
+.network-link { margin:0 }
+.workspace { padding:clamp(24px,3vw,42px) 0; gap:20px }
+.page-title h1,.entry-form h1,.box-head h2,.quick h2,.receipt-total,.empty-state h3 { font-family:var(--display) }
+.page-title h1 { font-weight:720; font-size:clamp(2.35rem,4.8vw,4.35rem); letter-spacing:-.075em }
+.page-title p { margin-top:3px }
+.overview-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(188px,23%); align-items:stretch; gap:16px }
+.balance { background:#263887; border-radius:14px; min-height:276px; padding:0; overflow:hidden; color:#fff4de }
+.balance-content { position:relative; z-index:1; align-self:stretch; justify-content:center; align-items:flex-start; padding:28px; gap:10px; width:57%; background:linear-gradient(106deg,#2d419b,#263887) }
+.balance-content::after { content:""; position:absolute; right:-12px; top:0; bottom:0; width:13px; background:radial-gradient(circle at 0 8px,#263887 8px,transparent 8.5px) 0 0/13px 16px repeat-y }
+.balance-number { font:650 clamp(2rem,4vw,4rem)/1.02 var(--display); letter-spacing:-.075em; font-variant-numeric:tabular-nums }
+.balance-foot { padding-top:13px; margin-top:8px; border-top:1px dashed #a3add7; line-height:1.5 }
+.waterfront,.poster-illustration { background:#fab89a url('./art/waterfront.webp') center center/cover no-repeat; overflow:hidden }
+.waterfront { position:absolute; inset:0 0 0 55% }
+.ferry { position:absolute; width:34px; height:7px; background:#27335e; clip-path:polygon(0 45%,30% 45%,36% 0,62% 0,66% 42%,100% 42%,86% 100%,14% 100%); left:15%; top:79%; animation:cross-water 18s ease-in-out infinite alternate }
+@keyframes cross-water { to { left:76% } }
+.routing-stamp { position:absolute; bottom:13px; right:10px; font:600 .7rem/1.4 ui-monospace,monospace; color:#28315a; background:#fff0cc; padding:3px 7px; border:1px solid #273464; transform:rotate(-3deg) }
+.quick.box { background:none; border:0; padding:0; display:grid; grid-template-columns:1fr; grid-template-rows:1fr 1fr; gap:12px }
+.quick button { background:#ffae89; color:#392c40; border:1px solid #d08f71; border-radius:14px; padding:16px; display:grid; grid-template-columns:auto 1fr; align-content:center; align-items:center; gap:6px 11px; font:710 clamp(1rem,1.65vw,1.38rem)/1.1 var(--display); transition:transform .17s,box-shadow .17s }
+.quick button:nth-child(2){background:#d8e2bf;border-color:#b3be96}
+.quick button:hover { transform:translateY(-2px) rotate(-.5deg); box-shadow:2px 4px 0 #232e5422 }
+.shortcut-icon { background:#fff8df89; color:var(--ink); border-radius:50%; width:30px; height:30px }
+.quick small { grid-column:1/-1; font:450 .84rem/1.4 "Inter Variable",sans-serif }
+.box { border-color:var(--line); background:#fffdf6; border-radius:14px }
+.box-head h2 { font-size:1.52rem; letter-spacing:-.055em }
+.box-head { padding-bottom:16px }
+.activity .empty-state { margin:0 22px 19px; padding:23px 12px; background:repeating-linear-gradient(130deg,#f7f1e3 0 9px,#fbf7ed 9px 18px); border:1px dashed #bbb29e; border-radius:9px }
+.empty-state h3 { font-size:1.15rem; color:var(--ink) }
+.transaction-row { border-top-style:dashed }.transaction-row:hover { background:#f7f1e4 }
+.tx-icon { background:#f5d7bc; color:#593c44 }.tx-icon.credit { background:#dce9c8; color:#314d33 }
+.entry-grid { background:#fffcf4; border:1px solid #b3aa97; border-radius:18px }
+.art-panel { display:grid; grid-template-rows:auto 1fr auto; min-height:510px; background:#253886; padding:0; gap:0 }
+.poster-heading { padding:22px 27px; font:700 clamp(2.5rem,5vw,5rem)/.95 var(--display); letter-spacing:-.075em; color:#fff1d7 }
+.poster-heading span { display:block; font:530 .9rem/1.4 "Inter Variable",sans-serif; letter-spacing:normal; margin-top:8px }
+.poster-illustration { position:relative; min-height:180px }
+.art-foot { padding:14px 24px; border:0; background:#202b59 }
+.entry-form h1 { letter-spacing:-.07em }
+.form-symbol { background:#fed6ac; color:#42314c; border-radius:50% }
+.route ol { border-left:5px solid #f8a579; margin-left:18px }
+@media(max-width:800px) {
+ .overview-grid { grid-template-columns:1fr }
+ .quick.box { grid-template-columns:1fr 1fr; grid-template-rows:auto }
+ .quick button { padding:13px }.balance { min-height:225px }.balance-content { padding:20px }
+}
+@media(max-width:720px) {
+ .app-layout { padding-inline:14px }.sidebar nav { width:100%; justify-content:space-between }.sidebar nav a { padding:7px 10px;font-size:.78rem }
+ .workspace { padding-top:21px }.art-panel { height:230px; min-height:0; grid-template-columns:1fr 1.2fr; grid-template-rows:1fr auto }
+ .poster-heading { padding:18px; align-self:center; font-size:2.5rem }.poster-illustration { grid-column:2;grid-row:1/3;min-height:0 }
+ .art-foot { flex-direction:row; flex-wrap:wrap; padding:10px 14px; gap:10px }
+ .balance-content { width:64%;padding:16px }.waterfront { left:60% }.balance-top { font-size:.88rem;gap:0 }
+ .balance-foot { gap:3px;display:grid }.balance-foot span+span { padding:0;border:0 }.routing-stamp { font-size:.62rem;max-width:29%;text-align:center }
+ .quick button { font-size:.98rem }.quick small {font-size:.76rem}.balance { min-height:205px }
+}
+@media(prefers-reduced-motion:reduce){.ferry{animation:none}.quick button{transition:none}.quick button:hover{transform:none}}

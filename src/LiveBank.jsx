@@ -116,11 +116,8 @@ export default function LiveBank({ bank, openDemo }) {
     <a className="switch-anchor" href={switchUrl}><Globe2 size={17}/>SharedBank switch</a></div></header>
     <main className="entry-main"><div className="entry-grid">
       <section className="art-panel" aria-label={bank.name + ' routing details'}>
-        <div className="art-lines" aria-hidden="true"/><div className="art-label"><span className="network-glyph" aria-hidden="true"/>SharedBank network</div>
-        <div className="book-stack"><div className="book-under" aria-hidden="true"/><div className="passbook">
-          <div className="passbook-lines" aria-hidden="true"/><div className="book-head"><span className="book-mark" aria-hidden="true">N</span><span>Account services</span></div>
-          <div className="book-title">{bank.short}<br/>Bank<span>.</span></div><div className="book-bottom"><span>PERSONAL BANKING</span><span>{bank.id}</span></div>
-        </div></div>
+        <div className="poster-heading">{bank.name}<span>Personal banking</span></div>
+        <div className="poster-illustration" aria-hidden="true"><i className="ferry"/></div>
         <div className="art-foot"><div><span>Bank identifier</span><strong>{bank.id}</strong></div><div><span>IFSC</span><strong>{bank.ifsc}</strong></div></div>
       </section>
       <section className="entry-form"><div className="form-symbol"><KeyRound size={24}/></div>
