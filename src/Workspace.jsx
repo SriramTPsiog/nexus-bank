@@ -3,6 +3,7 @@ import { Alert, Button, IconButton } from '@mui/material';
 import { ArrowLeftRight, Copy, Eye, EyeOff, Globe2, History, LayoutDashboard, LogOut, RefreshCw, RotateCcw, Send, Wallet } from 'lucide-react';
 import Activity, { Receipt } from './Activity';
 import TransferForm from './TransferForm';
+import { AccountMix, ActivityRhythm } from './OverviewPanels';
 import { money, when } from './banking';
 
 export const switchUrl = 'https://sriramtpsiog.github.io/SharedDB/';
@@ -80,6 +81,10 @@ export default function Workspace({ bank, email, demo, accounts, transfers, dire
                 <button onClick={() => navigate(page === 'accounts' ? 'activity' : 'accounts')}><span className="shortcut-icon">
                   {page === 'accounts' ? <History size={18}/> : <Wallet size={18}/>}</span>{page === 'accounts' ? 'View activity' : 'Account details'}<small>{page === 'accounts' ? 'Transfers and receipts' : 'Balances and routing'}</small></button>
               </section></div>
+            {page === 'overview' && <div className="insights-spread">
+              <AccountMix accounts={accounts} hidden={hidden} openAccounts={() => navigate('accounts')}/>
+              <ActivityRhythm rows={transfers}/>
+            </div>}
             {page === 'accounts' && <Accounts accounts={accounts} bank={bank} hidden={hidden}/>}
           </>}
           {page === 'transfers' && <TransferForm bank={bank} accounts={accounts} directory={directory} send={submit} demoAccounts={demoAccounts}

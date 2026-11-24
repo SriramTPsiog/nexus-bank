@@ -65,3 +65,42 @@
  .quick button { font-size:.98rem }.quick small {font-size:.76rem}.balance { min-height:205px }
 }
 @media(prefers-reduced-motion:reduce){.ferry{animation:none}.quick button{transition:none}.quick button:hover{transform:none}}
+
+/* The passbook and activity plot form a two-page spread below the waterfront. */
+.insights-spread { display:grid; grid-template-columns:1fr 1fr; gap:16px }
+.passbook-panel,.rhythm-panel { min-width:0; border-radius:14px; padding:20px 23px; border:1px solid #ccc6b7 }
+.passbook-panel { background:linear-gradient(90deg,#97b8ab 4px,#e8efdd 4px,#e8efdd 8px,#aac3b3 9px,#e8efdd 10px); padding-left:27px }
+.rhythm-panel { background:#f5e4d2 }
+.insights-spread header,.insights-spread header>div:first-child,.passbook-strip,.chart-dates { display:flex; align-items:center; justify-content:space-between; gap:10px }
+.insights-spread header>div:first-child { justify-content:flex-start }
+.insights-spread h2 { font:700 clamp(1.12rem,1.7vw,1.42rem)/1.15 var(--display); letter-spacing:-.045em }
+.text-action,.range-switch button { cursor:pointer; color:var(--ink); background:transparent; border:0; font-weight:650 }
+.text-action { padding:6px 0; text-decoration:underline; text-underline-offset:4px; font-size:.83rem }
+.passbook-select { display:flex; align-items:center; gap:12px; font-size:.88rem; margin:16px 0 }
+.passbook-select select { min-width:0; max-width:100%; border:1px solid #9bb09b; background:#f5f8ed; border-radius:7px; padding:7px; color:var(--ink); font:inherit }
+.book-figures { display:grid; grid-template-columns:1.25fr 1fr; gap:10px }
+.book-figures small,.book-figures strong { display:block }
+.book-figures strong { margin-top:3px; font:640 clamp(1.2rem,2.2vw,1.95rem)/1.1 var(--display); overflow-wrap:anywhere }
+.passbook-strip { margin-top:14px; border-top:1px dashed #91aa94; padding-top:10px; font-size:.86rem; flex-wrap:wrap }
+.range-switch { display:flex; padding:2px; background:#ead4bc; border-radius:8px }
+.range-switch button { padding:5px 8px; border-radius:6px; font-size:.85rem }
+.range-switch button[aria-pressed="true"] { background:#303859; color:white }
+.rhythm-panel p { margin:10px 0 8px; font-size:.9rem }
+.rhythm-panel p strong { font:650 1.7rem var(--display) }
+.rhythm-bars { display:flex; gap:3px; height:57px; background:repeating-linear-gradient(to top,#b2937338 0 1px,transparent 1px 18px) }
+.rhythm-bars button { border:0; background:transparent; padding:0 2px; flex:1; min-width:0; display:flex; align-items:flex-end; justify-content:center; cursor:pointer }
+.rhythm-bars i { display:block; width:100%; max-width:30px; background:#a85338; border-radius:3px 3px 0 0 }
+.rhythm-bars button[aria-pressed="true"] { background:#fff5df99 }
+.rhythm-bars button[aria-pressed="true"] i { background:#303859 }
+.chart-dates,.chart-readout { font:500 .8rem/1.5 ui-monospace,monospace }
+.chart-dates { margin-top:4px;color:#665849 }
+.chart-readout { margin-top:6px }
+.ticket-heading.MuiDialogTitle-root { font-family:var(--display); font-weight:700; letter-spacing:-.04em }
+.ticket-face { position:relative; background:#263887; color:#fff4de; border-radius:11px; padding:17px 21px; margin-bottom:14px; display:grid; justify-items:start; gap:6px; overflow:hidden }
+.ticket-face::after { content:""; position:absolute; inset:0 0 0 auto; width:12px; background:repeating-linear-gradient(-45deg,#ffc590 0 5px,#f48c68 5px 10px) }
+.ticket-face strong { font:650 2.4rem/1.1 var(--display); letter-spacing:-.065em }
+.ticket-face small { font-size:.9rem }
+.account-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr)); gap:14px; padding-bottom:20px }
+.account-list .account { border:1px solid #c5cbbb; border-top:6px solid #739989; background:#f0f4e9; padding:16px; border-radius:10px }
+.account-list .account:nth-child(even) { background:#fbecdd; border-color:#dba27d }
+@media(max-width:760px){ .insights-spread{grid-template-columns:1fr}.passbook-panel,.rhythm-panel{padding:17px 19px}.rhythm-bars{gap:1px} }

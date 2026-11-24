@@ -20,8 +20,8 @@ export function Receipt({ row, directory, bank, demo, close }) {
   const download = () => downloadFile(row.transferId + '.txt',
     [bank.name, demo ? 'Browser demo' : 'SharedBank test network', title, money(row.amountMinor), ...fields.map(([k, v]) => k + ': ' + v)].join('\n'), 'text/plain;charset=utf-8');
   return <Dialog open onClose={close} fullWidth maxWidth="xs" aria-labelledby="receipt-title">
-    <DialogTitle id="receipt-title">{title}</DialogTitle><DialogContent>
-      <div className="receipt-total">{money(row.amountMinor)} <Status value={row.status} /></div>
+    <DialogTitle id="receipt-title" className="ticket-heading">{title}</DialogTitle><DialogContent>
+      <div className="ticket-face"><span>{bank.name}</span><strong>{money(row.amountMinor)}</strong><Status value={row.status} /></div>
       <dl className="details">{fields.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
     </DialogContent><DialogActions><Button startIcon={<Download size={16} />} onClick={download}>Download</Button><Button onClick={close}>Close</Button></DialogActions>
   </Dialog>;

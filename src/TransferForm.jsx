@@ -78,7 +78,7 @@ export default function TransferForm({ bank, accounts, directory, send, demoAcco
         <strong>{b?.bankName || 'Select a bank'}</strong>{b && <code>{b.ifsc}</code>}</li>)}</ol>
     </aside>
     <Dialog open={Boolean(review)} onClose={() => { if (!busy) setReview(null); }} fullWidth maxWidth="xs" aria-labelledby="review-title">
-      <DialogTitle id="review-title">Review transfer</DialogTitle>{review && <DialogContent><div className="receipt-total">{money(review.data.amountMinor)}</div>
+      <DialogTitle id="review-title" className="ticket-heading">Review transfer</DialogTitle>{review && <DialogContent><div className="ticket-face"><span>Transfer amount</span><strong>{money(review.data.amountMinor)}</strong><small>{bank.name} → {review.target}</small></div>
         <dl className="details">{[['From account', review.source], ['To bank', review.target], ['IFSC', review.data.destinationIfsc],
           ['To account', review.data.destinationAccountNumber]].map(([k,v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
         {error && <Alert severity="error">{error}</Alert>}
