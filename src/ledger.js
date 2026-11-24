@@ -14,7 +14,7 @@ const initialAccounts = {
   LYR002: { bank: 'lyra', number: 'LYRA000002', balance: 0, label: 'Secondary savings' },
 };
 
-export const storageKey = 'x42-bank-pages-demo-v1';
+export const storageKey = import.meta.env.MODE === 'offline' ? 'nexus-ui-studio-v1' : 'x42-bank-pages-demo-v1';
 const initialState = () => ({ accounts: structuredClone(initialAccounts), transfers: [] });
 let inMemory = initialState();
 

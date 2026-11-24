@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "preview": "vite preview --host 0.0.0.0",
+    "dev:offline": "vite --mode offline --host 127.0.0.1 --open",
+    "build:offline": "vite build --mode offline --outDir dist-offline"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

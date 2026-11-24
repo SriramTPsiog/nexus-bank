@@ -39,15 +39,19 @@ export async function liveApi(base, path, { token, data, key, signal } = {}) {
     });
   } catch (error) {
     if (signal?.aborted) throw error;
-    throw new Error(timeout.aborted ? 'The request timed out. Retry the same transfer details to keep the request ID.'
-      : 'Could not reach the Worker. Check the URL and the Worker’s allowed origins.');
+    const reason = timeout.aborted ? 'The request timed out.' : 'Could not reach the banking service.';
+    throw new Error(key ? reason + ' Check activity before retrying with the same details.' : reason + ' Try again shortly.');
   }
-  const result = await response.json().catch(() => ({}));
+  const result = await response.json().catch(() => null);
   if (!response.ok) {
-    const error = new Error(result.error?.message || 'The Worker returned HTTP ' + response.status + '.');
+    const unavailable = [429, 503].includes(response.status);
+    const message = unavailable ? 'The banking service is temporarily unavailable.' :
+      result?.error?.message || 'The banking service returned HTTP ' + response.status + '.';
+    const error = new Error(message + (unavailable && key ? ' Check activity before retrying with the same details.' : ''));
     error.status = response.status;
-    error.code = result.error?.code;
+    error.code = result?.error?.code;
     throw error;
   }
+  if (!result || typeof result !== 'object') throw new Error('The banking service returned an unreadable response.');
   return result;
 }
